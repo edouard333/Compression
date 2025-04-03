@@ -3,15 +3,18 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.phenix</groupId>
     <artifactId>compression</artifactId>
-    <name>Compression</name>
-    <version>0.3.0</version>
+    <version>0.3.1</version>
     <packaging>jar</packaging>
+    
+    <name>Compression</name>
+    <description>Librairie qui gère des compressions Zip etc.</description>
     <url>https://github.com/edouard333/Compression</url>
     
     <developers>
         <developer>
             <name>Edouard Jeanjean</name>
             <email>edouard128@hotmail.com</email>
+            <url>https://github.com/edouard333</url>
         </developer>
     </developers>
     
@@ -37,7 +40,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.11.1</version>
+                <version>3.11.2</version>
                 <executions>
                     <execution>
                         <id>attach-javadoc</id>
@@ -47,8 +50,51 @@
                     </execution>
                 </executions>
             </plugin>
+            
+            <!-- Génère des checksums. -->
+            <plugin>
+                <groupId>net.nicoulaj.maven.plugins</groupId>
+                <artifactId>checksum-maven-plugin</artifactId>
+                <version>1.11</version>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>files</goal>
+                        </goals>
+                        <configuration>
+                            <fileSets>
+                                <!-- Inclure les fichiers de build Maven. -->
+                                <fileSet>
+                                    <directory>${project.build.directory}</directory>
+                                    <includes>
+                                        <include>*-${project.version}.jar</include>
+                                        <include>*-${project.version}-sources.jar</include>
+                                        <include>*-${project.version}-javadoc.jar</include>
+                                    </includes>
+                                </fileSet>
+                            </fileSets>
+                            <csvSummaryFile>checksums-${project.version}.csv</csvSummaryFile>
+                            <!-- L'algorithme de hash. -->
+                            <algorithms>
+                                <algorithm>SHA-1</algorithm>
+                                <algorithm>MD5</algorithm>
+                            </algorithms>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+    
+    <dependencies>
+        <!-- Ajout des annotations @NotNull, etc. -->
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <version>3.1.1</version>
+        </dependency>
+    </dependencies>
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

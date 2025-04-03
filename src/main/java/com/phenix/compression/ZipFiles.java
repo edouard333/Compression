@@ -1,6 +1,9 @@
 package com.phenix.compression;
 
 import com.phenix.compression.exception.ZipCustomException;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -36,7 +39,7 @@ public final class ZipFiles {
      *
      * @throws ZipCustomException Le Zip a un souci.
      */
-    public static void checkZip(File fichier_zip, List<File> liste_fichier) throws ZipCustomException {
+    public static void checkZip(@NotNull File fichier_zip, @NotNull List<File> liste_fichier) throws ZipCustomException {
         int nb_fichier_trouve = 0;
 
         try (ZipFile zipFile = new ZipFile(fichier_zip)) {
@@ -80,7 +83,7 @@ public final class ZipFiles {
      *
      * @throws IOException
      */
-    private static long getCrcFromFile(File fichier) throws IOException {
+    private static long getCrcFromFile(@NotNull File fichier) throws IOException {
         byte[] data = Files.readAllBytes(fichier.toPath());
         Checksum checksum = new CRC32();
         checksum.update(data);
@@ -94,7 +97,8 @@ public final class ZipFiles {
      * @param nom_fichier Le nom de fichier.
      * @return Le fichier sinon {@code null}.
      */
-    private static File getFileByName(List<File> liste_fichier, String nom_fichier) {
+    @Null
+    private static File getFileByName(@NotNull List<File> liste_fichier, String nom_fichier) {
         for (File fichier : liste_fichier) {
             if (fichier.getName().equals(nom_fichier)) {
                 return fichier;
@@ -112,7 +116,7 @@ public final class ZipFiles {
      *
      * @throws ZipCustomException
      */
-    public static void zipDirectory(ArrayList<File> liste_fichier, File zip) throws ZipCustomException {
+    public static void zipDirectory(@NotNull ArrayList<File> liste_fichier, @NotNull File zip) throws ZipCustomException {
         FileOutputStream fos = null;
         ZipOutputStream zos = null;
         try {
@@ -162,7 +166,7 @@ public final class ZipFiles {
      * @param dir
      * @param zipDirName
      */
-    public void zipDirectory(File dir, File zipDirName) {
+    public void zipDirectory(@NotNull File dir, @NotNull File zipDirName) {
         try {
             populateFilesList(dir);
             //now zip files one by one
@@ -197,7 +201,7 @@ public final class ZipFiles {
      * @param dir
      * @throws IOException
      */
-    private void populateFilesList(File dir) throws IOException {
+    private void populateFilesList(@NotNull File dir) throws IOException {
         File[] files = dir.listFiles();
         for (File file : files) {
             if (file.isFile()) {
@@ -214,7 +218,7 @@ public final class ZipFiles {
      * @param file
      * @param zipFileName
      */
-    private static void zipSingleFile(File file, String zipFileName) {
+    private static void zipSingleFile(@NotNull File file, @NotNull @NotBlank String zipFileName) {
         try {
             //create ZipOutputStream to write to the zip file
             FileOutputStream fos = new FileOutputStream(zipFileName);
@@ -251,7 +255,7 @@ public final class ZipFiles {
      *
      * @throws IOException
      */
-    public static void compressGzipFile(File file, File gzipFile) throws IOException {
+    public static void compressGzipFile(@NotNull File file, @NotNull File gzipFile) throws IOException {
         FileInputStream fis = new FileInputStream(file);
         FileOutputStream fos = new FileOutputStream(gzipFile);
         GZIPOutputStream gzipOS = new GZIPOutputStream(fos);
@@ -274,7 +278,7 @@ public final class ZipFiles {
      *
      * @throws IOException
      */
-    public static void decompressGzipFile(File gzipFile, File newFile) throws IOException {
+    public static void decompressGzipFile(@NotNull File gzipFile, @NotNull File newFile) throws IOException {
         FileInputStream fis = new FileInputStream(gzipFile);
         GZIPInputStream gis = new GZIPInputStream(fis);
         FileOutputStream fos = new FileOutputStream(newFile);

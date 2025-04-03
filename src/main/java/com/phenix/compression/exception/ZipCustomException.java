@@ -8,7 +8,7 @@ package com.phenix.compression.exception;
 public class ZipCustomException extends Exception {
 
     /**
-     * Construit une erreur {@code ZipCustomException} avec un message.
+     * Construit une erreur {@link ZipCustomException} avec un message.
      *
      * @param message Le message
      */
