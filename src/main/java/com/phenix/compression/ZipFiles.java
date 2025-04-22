@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.zip.CRC32;
@@ -39,7 +40,7 @@ public final class ZipFiles {
      *
      * @throws ZipCustomException Le Zip a un souci.
      */
-    public static void checkZip(@NotNull File fichier_zip, @NotNull List<File> liste_fichier) throws ZipCustomException {
+    public static void checkZip(@NotNull File fichier_zip, @NotNull Collection<File> liste_fichier) throws ZipCustomException {
         int nb_fichier_trouve = 0;
 
         try (ZipFile zipFile = new ZipFile(fichier_zip)) {
@@ -68,9 +69,9 @@ public final class ZipFiles {
                 throw new ZipCustomException("Le Zip n'aurait pas tous les fichiers à envoyer (trouvé : " + nb_fichier_trouve + "/" + liste_fichier.size() + ").");
             }
         } catch (ZipException exception) {
-            throw new ZipCustomException("Erreur avec le Zip (corrompu ?) : " + exception.getMessage());
+            throw new ZipCustomException("Erreur avec le Zip (corrompu ?) : " + exception.getMessage(), exception);
         } catch (IOException exception) {
-            throw new ZipCustomException(exception.getMessage());
+            throw new ZipCustomException(exception.getMessage(), exception);
         }
     }
 
@@ -98,7 +99,7 @@ public final class ZipFiles {
      * @return Le fichier sinon {@code null}.
      */
     @Null
-    private static File getFileByName(@NotNull List<File> liste_fichier, String nom_fichier) {
+    private static File getFileByName(@NotNull Iterable<File> liste_fichier, String nom_fichier) {
         for (File fichier : liste_fichier) {
             if (fichier.getName().equals(nom_fichier)) {
                 return fichier;
@@ -116,7 +117,7 @@ public final class ZipFiles {
      *
      * @throws ZipCustomException
      */
-    public static void zipDirectory(@NotNull ArrayList<File> liste_fichier, @NotNull File zip) throws ZipCustomException {
+    public static void zipDirectory(@NotNull Iterable<File> liste_fichier, @NotNull File zip) throws ZipCustomException {
         FileOutputStream fos = null;
         ZipOutputStream zos = null;
         try {
@@ -150,23 +151,27 @@ public final class ZipFiles {
                     fos.close();
                 }
             } catch (IOException exception2) {
-                throw new ZipCustomException(exception.getMessage() + ", et il n'a pas été possible de fermer le flux du Zip.");
+                throw new ZipCustomException(exception.getMessage() + ", et il n'a pas été possible de fermer le flux du Zip.", exception);
             }
 
-            exception.printStackTrace();
-            throw new ZipCustomException(exception.getMessage());
+            throw new ZipCustomException(exception.getMessage(), exception);
         }
     }
 
-    List<String> filesListInDir = new ArrayList<String>();
+    /**
+     *
+     */
+    private List<String> filesListInDir = new ArrayList<String>();
 
     /**
      * This method zips the directory
      *
      * @param dir
      * @param zipDirName
+     *
+     * @throws ZipCustomException
      */
-    public void zipDirectory(@NotNull File dir, @NotNull File zipDirName) {
+    public void zipDirectory(@NotNull File dir, @NotNull File zipDirName) throws ZipCustomException {
         try {
             populateFilesList(dir);
             //now zip files one by one
@@ -190,8 +195,8 @@ public final class ZipFiles {
             }
             zos.close();
             fos.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException exception) {
+            throw new ZipCustomException(exception.getMessage(), exception);
         }
     }
 
@@ -205,7 +210,7 @@ public final class ZipFiles {
         File[] files = dir.listFiles();
         for (File file : files) {
             if (file.isFile()) {
-                filesListInDir.add(file.getAbsolutePath());
+                this.filesListInDir.add(file.getAbsolutePath());
             } else {
                 populateFilesList(file);
             }
@@ -217,8 +222,10 @@ public final class ZipFiles {
      *
      * @param file
      * @param zipFileName
+     *
+     * @throws ZipCustomException
      */
-    private static void zipSingleFile(@NotNull File file, @NotNull @NotBlank String zipFileName) {
+    private static void zipSingleFile(@NotNull File file, @NotNull @NotBlank String zipFileName) throws ZipCustomException {
         try {
             //create ZipOutputStream to write to the zip file
             FileOutputStream fos = new FileOutputStream(zipFileName);
@@ -242,8 +249,8 @@ public final class ZipFiles {
             fos.close();
             System.out.println(file.getCanonicalPath() + " is zipped to " + zipFileName);
 
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException exception) {
+            throw new ZipCustomException(exception.getMessage(), exception);
         }
     }
 
@@ -253,21 +260,25 @@ public final class ZipFiles {
      * @param file Le fichier à compresser.
      * @param gzipFile Le fichier compressé.
      *
-     * @throws IOException
+     * @throws ZipCustomException
      */
-    public static void compressGzipFile(@NotNull File file, @NotNull File gzipFile) throws IOException {
-        FileInputStream fis = new FileInputStream(file);
-        FileOutputStream fos = new FileOutputStream(gzipFile);
-        GZIPOutputStream gzipOS = new GZIPOutputStream(fos);
-        byte[] buffer = new byte[1024];
-        int len;
-        while ((len = fis.read(buffer)) != -1) {
-            gzipOS.write(buffer, 0, len);
+    public static void compressGzipFile(@NotNull File file, @NotNull File gzipFile) throws ZipCustomException {
+        try {
+            FileInputStream fis = new FileInputStream(file);
+            FileOutputStream fos = new FileOutputStream(gzipFile);
+            GZIPOutputStream gzipOS = new GZIPOutputStream(fos);
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = fis.read(buffer)) != -1) {
+                gzipOS.write(buffer, 0, len);
+            }
+            // close resources
+            gzipOS.close();
+            fos.close();
+            fis.close();
+        } catch (IOException exception) {
+            throw new ZipCustomException(exception.getMessage(), exception);
         }
-        // close resources
-        gzipOS.close();
-        fos.close();
-        fis.close();
     }
 
     /**
@@ -276,20 +287,24 @@ public final class ZipFiles {
      * @param gzipFile
      * @param newFile
      *
-     * @throws IOException
+     * @throws ZipCustomException
      */
-    public static void decompressGzipFile(@NotNull File gzipFile, @NotNull File newFile) throws IOException {
-        FileInputStream fis = new FileInputStream(gzipFile);
-        GZIPInputStream gis = new GZIPInputStream(fis);
-        FileOutputStream fos = new FileOutputStream(newFile);
-        byte[] buffer = new byte[1024];
-        int len;
-        while ((len = gis.read(buffer)) != -1) {
-            fos.write(buffer, 0, len);
+    public static void decompressGzipFile(@NotNull File gzipFile, @NotNull File newFile) throws ZipCustomException {
+        try {
+            FileInputStream fis = new FileInputStream(gzipFile);
+            GZIPInputStream gis = new GZIPInputStream(fis);
+            FileOutputStream fos = new FileOutputStream(newFile);
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = gis.read(buffer)) != -1) {
+                fos.write(buffer, 0, len);
+            }
+            // close resources
+            fos.close();
+            gis.close();
+            fis.close();
+        } catch (IOException exception) {
+            throw new ZipCustomException(exception.getMessage(), exception);
         }
-        // close resources
-        fos.close();
-        gis.close();
-        fis.close();
     }
 }
