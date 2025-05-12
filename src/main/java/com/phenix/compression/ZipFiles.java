@@ -35,26 +35,26 @@ public final class ZipFiles {
      * les met à la racine du Zip.<br>
      * Si le Zip a un souci, on retourne une erreur.
      *
-     * @param fichier_zip Le fichier zip.
-     * @param liste_fichier Les fichiers qu'il doit contenir.
+     * @param fichierZip Le fichier zip.
+     * @param listeFichier Les fichiers qu'il doit contenir.
      *
      * @throws ZipCustomException Le Zip a un souci.
      */
-    public static void checkZip(@NotNull File fichier_zip, @NotNull Collection<File> liste_fichier) throws ZipCustomException {
-        int nb_fichier_trouve = 0;
+    public static void checkZip(@NotNull File fichierZip, @NotNull Collection<File> listeFichier) throws ZipCustomException {
+        int nbFichierTrouve = 0;
 
-        try (ZipFile zipFile = new ZipFile(fichier_zip)) {
+        try (ZipFile zipFile = new ZipFile(fichierZip)) {
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
                 // Vérifie si c'est un fichier :
                 if (!entry.isDirectory()) {
-                    File fichier = getFileByName(liste_fichier, entry.getName());
+                    File fichier = getFileByName(listeFichier, entry.getName());
 
                     if (fichier == null) {
                         throw new ZipCustomException("Le fichier '" + entry.getName() + "' est introuvable hors du Zip.");
                     } else {
-                        nb_fichier_trouve++;
+                        nbFichierTrouve++;
                     }
 
                     if (getCrcFromFile(fichier) != entry.getCrc()) {
@@ -65,8 +65,8 @@ public final class ZipFiles {
 
             // Vérifie qu'on trouve le même nombre de fichier dans le Zip que ceux qui doivent si trouver.
             // On ne dit pas ceux manquant.
-            if (nb_fichier_trouve != liste_fichier.size()) {
-                throw new ZipCustomException("Le Zip n'aurait pas tous les fichiers à envoyer (trouvé : " + nb_fichier_trouve + "/" + liste_fichier.size() + ").");
+            if (nbFichierTrouve != listeFichier.size()) {
+                throw new ZipCustomException("Le Zip n'aurait pas tous les fichiers à envoyer (trouvé : " + nbFichierTrouve + "/" + listeFichier.size() + ").");
             }
         } catch (ZipException exception) {
             throw new ZipCustomException("Erreur avec le Zip (corrompu ?) : " + exception.getMessage(), exception);
@@ -94,14 +94,14 @@ public final class ZipFiles {
     /**
      * Retourne un fichier selon son nom de fichier de la liste.
      *
-     * @param liste_fichier La liste de fichier.
-     * @param nom_fichier Le nom de fichier.
+     * @param listeFichier La liste de fichier.
+     * @param nomFichier Le nom de fichier.
      * @return Le fichier sinon {@code null}.
      */
     @Null
-    private static File getFileByName(@NotNull Iterable<File> liste_fichier, String nom_fichier) {
-        for (File fichier : liste_fichier) {
-            if (fichier.getName().equals(nom_fichier)) {
+    private static File getFileByName(@NotNull Iterable<File> listeFichier, String nomFichier) {
+        for (File fichier : listeFichier) {
+            if (fichier.getName().equals(nomFichier)) {
                 return fichier;
             }
         }
@@ -112,12 +112,12 @@ public final class ZipFiles {
     /**
      * Zipe une liste de fichier dans un ZIP.
      *
-     * @param liste_fichier Liste des fichiers.
+     * @param listeFichier Liste des fichiers.
      * @param zip Le fichier ZIP de sortie.
      *
      * @throws ZipCustomException
      */
-    public static void zipDirectory(@NotNull Iterable<File> liste_fichier, @NotNull File zip) throws ZipCustomException {
+    public static void zipDirectory(@NotNull Iterable<File> listeFichier, @NotNull File zip) throws ZipCustomException {
         FileOutputStream fos = null;
         ZipOutputStream zos = null;
         try {
@@ -125,7 +125,7 @@ public final class ZipFiles {
             //create ZipOutputStream to write to the zip file
             fos = new FileOutputStream(zip.getAbsolutePath());
             zos = new ZipOutputStream(fos);
-            for (File file : liste_fichier) {
+            for (File file : listeFichier) {
                 //for ZipEntry we need to keep only relative file path, so we used substring on absolute path
                 ZipEntry ze = new ZipEntry(file.getName());
                 zos.putNextEntry(ze);
