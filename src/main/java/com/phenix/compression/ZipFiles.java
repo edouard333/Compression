@@ -45,8 +45,10 @@ public final class ZipFiles {
 
         try (ZipFile zipFile = new ZipFile(fichierZip)) {
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
+
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
+
                 // Vérifie si c'est un fichier :
                 if (!entry.isDirectory()) {
                     File fichier = getFileByName(listeFichier, entry.getName());
@@ -125,6 +127,7 @@ public final class ZipFiles {
             //create ZipOutputStream to write to the zip file
             fos = new FileOutputStream(zip.getAbsolutePath());
             zos = new ZipOutputStream(fos);
+
             for (File file : listeFichier) {
                 //for ZipEntry we need to keep only relative file path, so we used substring on absolute path
                 ZipEntry ze = new ZipEntry(file.getName());
@@ -178,6 +181,7 @@ public final class ZipFiles {
             //create ZipOutputStream to write to the zip file
             FileOutputStream fos = new FileOutputStream(zipDirName);
             ZipOutputStream zos = new ZipOutputStream(fos);
+
             for (String filePath : filesListInDir) {
                 System.out.println("Zipping " + filePath);
                 //for ZipEntry we need to keep only relative file path, so we used substring on absolute path
@@ -207,8 +211,7 @@ public final class ZipFiles {
      * @throws IOException
      */
     private void populateFilesList(@NotNull File dir) throws IOException {
-        File[] files = dir.listFiles();
-        for (File file : files) {
+        for (File file : dir.listFiles()) {
             if (file.isFile()) {
                 this.filesListInDir.add(file.getAbsolutePath());
             } else {
