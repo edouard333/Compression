@@ -1,12 +1,21 @@
 # Compression
-Librairie qui gère des compressions Zip etc.
+Librairie pour gérer des compressions Zip etc.
 
 # Comment l'utiliser ?
-Utiliser la classe [`com.phenix.compression.ZipFiles`](src/main/java/com/phenix/compression/ZipFiles.java).
+Utiliser la classe :
 ```java
-// Vérifier qu'une liste de fichier sont dans un Zip :
-ZipFiles.checkZip(new File("fichier_zip.zip"), new ArrayList<File>());
-...
+import com.phenix.compression.ZipFiles;
 ```
 
-Pour plus d'information, consulter la **[JavaDoc du projet](target/site/apidocs/index.html)**.
+Exemple :
+```java
+import com.phenix.compression.ZipFiles;
+
+void main(String[] args) {
+    // Vérifier qu'une liste de fichier sont dans un Zip :
+    List<File> listeFichier = new ArrayList<File>();
+    
+    ZipFiles.checkZip(new File("fichier_zip.zip"), listeFichier);
+    // ...
+}
+```
